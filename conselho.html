@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conselho Estratégico · lunae</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#06050 3;
+  --deep:#0d0b07;
+  --surface:#13100a;
+  --card:#1a1610;
+  --gold:#c8a951;
+  --gold-light:#e2c97e;
+  --gold-dim:#7a6428;
+  --gold-pale:rgba(200,169,81,0.08);
+  --cream:#f0e6d0;
+  --warm:#c9b99a;
+  --muted:#6b5f4e;
+  --divgold:rgba(200,169,81,0.18);
+  --green:#4a7c59;
+  --red:#7c4a4a;
+}
+html{scroll-behavior:smooth}
+body{background:#060503;color:var(--cream);font-family:'Inter',sans-serif;font-weight:300;min-height:100vh}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(6,5,3,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--divgold);padding:0 24px}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.nav-logo{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold);letter-spacing:.08em}
+.nav-tabs{display:flex;gap:4px}
+.tab-btn{background:none;border:none;color:var(--muted);font-family:'Inter',sans-serif;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;padding:8px 16px;cursor:pointer;border-radius:4px;transition:all .2s}
+.tab-btn:hover{color:var(--cream)}
+.tab-btn.active{color:var(--gold);background:var(--gold-pale)}
+
+/* PANELS */
+.panel{display:none;max-width:1100px;margin:0 auto;padding:40px 24px 80px}
+.panel.active{display:block}
+
+/* SECTION TITLE */
+.sec-title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:400;color:var(--cream);margin-bottom:8px}
+.sec-title em{font-style:italic;color:var(--gold-light)}
+.sec-sub{font-size:13px;color:var(--muted);margin-bottom:32px;line-height:1.6}
+
+/* UPLOAD AREA */
+.upload-area{border:1px dashed var(--gold-dim);padding:40px;text-align:center;cursor:pointer;transition:all .3s;margin-bottom:24px;background:var(--gold-pale)}
+.upload-area:hover{border-color:var(--gold);background:rgba(200,169,81,0.12)}
+.upload-area p{font-size:13px;color:var(--muted);margin-top:8px}
+.upload-icon{font-size:2rem;margin-bottom:8px}
+#file-input{display:none}
+#preview-img{max-width:100%;max-height:300px;margin:16px auto;display:none;border:1px solid var(--divgold)}
+
+/* CONTEXT INPUT */
+.context-input{width:100%;background:var(--card);border:1px solid var(--divgold);color:var(--cream);font-family:'Inter',sans-serif;font-size:14px;padding:14px 16px;resize:vertical;min-height:80px;margin-bottom:16px;outline:none;transition:border .2s}
+.context-input:focus{border-color:var(--gold-dim)}
+.context-input::placeholder{color:var(--muted)}
+
+/* CONSELHEIRO SELECT */
+.conselheiros-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:24px}
+@media(max-width:600px){.conselheiros-grid{grid-template-columns:repeat(2,1fr)}}
+.c-card{border:1px solid var(--divgold);padding:12px 14px;cursor:pointer;transition:all .2s;background:var(--card)}
+.c-card:hover{border-color:var(--gold-dim)}
+.c-card.selected{border-color:var(--gold);background:var(--gold-pale)}
+.c-card input{display:none}
+.c-name{font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.c-role{font-size:11px;color:var(--muted)}
+
+/* ANALYZE BTN */
+.analyze-btn{width:100%;background:var(--gold);color:#060503;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;padding:16px;border:none;cursor:pointer;transition:all .3s;margin-bottom:32px}
+.analyze-btn:hover{background:var(--gold-light)}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* RESULTS */
+.results{display:flex;flex-direction:column;gap:16px}
+.result-card{border:1px solid var(--divgold);background:var(--card);overflow:hidden}
+.result-header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--divgold);background:rgba(200,169,81,0.05)}
+.result-avatar{width:36px;height:36px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;color:var(--gold-light);font-weight:700;flex-shrink:0}
+.result-name{font-size:12px;font-weight:600;color:var(--gold);letter-spacing:.08em;text-transform:uppercase}
+.result-role{font-size:11px;color:var(--muted)}
+.result-body{padding:18px;font-size:14px;color:var(--warm);line-height:1.8}
+.result-body strong{color:var(--cream);font-weight:500}
+
+/* VOTE CARD */
+.vote-card{border:1px solid var(--gold);background:rgba(200,169,81,0.06);padding:20px 24px;margin-top:8px}
+.vote-title{font-family:'Playfair Display',serif;font-size:1rem;font-style:italic;color:var(--gold-light);margin-bottom:12px}
+.vote-body{font-size:14px;color:var(--warm);line-height:1.8}
+
+/* LOADING */
+.loading{display:none;text-align:center;padding:48px}
+.loading-dots{display:flex;justify-content:center;gap:8px;margin-bottom:16px}
+.loading-dots span{width:8px;height:8px;background:var(--gold-dim);border-radius:50%;animation:dotPulse 1.4s ease-in-out infinite}
+.loading-dots span:nth-child(2){animation-delay:.2s}
+.loading-dots span:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.8);opacity:.4}40%{transform:scale(1);opacity:1}}
+.loading p{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted)}
+
+/* CHECKLIST */
+.checklist-form{display:flex;gap:10px;margin-bottom:24px}
+.checklist-input{flex:1;background:var(--card);border:1px solid var(--divgold);color:var(--cream);font-family:'Inter',sans-serif;font-size:14px;padding:12px 16px;outline:none;transition:border .2s}
+.checklist-input:focus{border-color:var(--gold-dim)}
+.checklist-input::placeholder{color:var(--muted)}
+.add-btn{background:var(--gold);color:#060503;border:none;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;padding:12px 20px;cursor:pointer;transition:background .2s;white-space:nowrap}
+.add-btn:hover{background:var(--gold-light)}
+.checklist-list{display:flex;flex-direction:column;gap:8px}
+.check-item{display:flex;align-items:center;gap:12px;padding:14px 16px;background:var(--card);border:1px solid var(--divgold);transition:all .2s}
+.check-item.done{opacity:.5}
+.check-item.done .check-text{text-decoration:line-through;color:var(--muted)}
+.check-box{width:18px;height:18px;border:1px solid var(--gold-dim);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;background:transparent}
+.check-box.checked{background:var(--gold);border-color:var(--gold)}
+.check-box.checked::after{content:'✓';color:#060503;font-size:11px;font-weight:700}
+.check-text{flex:1;font-size:14px;color:var(--warm)}
+.check-delete{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;transition:color .2s}
+.check-delete:hover{color:var(--red)}
+.check-category{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-dim);padding:2px 8px;border:1px solid var(--divgold)}
+
+/* UPDATES */
+.update-form{background:var(--card);border:1px solid var(--divgold);padding:24px;margin-bottom:32px}
+.update-form-title{font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:16px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:600px){.form-row{grid-template-columns:1fr}}
+.form-input{background:#060503;border:1px solid var(--divgold);color:var(--cream);font-family:'Inter',sans-serif;font-size:14px;padding:10px 14px;outline:none;width:100%;transition:border .2s}
+.form-input:focus{border-color:var(--gold-dim)}
+.form-input::placeholder{color:var(--muted)}
+.save-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);font-family:'Inter',sans-serif;font-size:11px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;padding:10px 24px;cursor:pointer;transition:all .2s}
+.save-btn:hover{background:var(--gold);color:#060503}
+.updates-list{display:flex;flex-direction:column;gap:12px}
+.update-item{border:1px solid var(--divgold);background:var(--card);padding:18px 20px}
+.update-date{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:6px}
+.update-metric{font-size:1.4rem;font-family:'Playfair Display',serif;color:var(--gold-light);margin-bottom:4px}
+.update-note{font-size:13px;color:var(--muted);line-height:1.6}
+.update-badge{display:inline-block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;margin-top:8px}
+.badge-up{background:rgba(74,124,89,0.2);color:#6ab380;border:1px solid rgba(74,124,89,0.3)}
+.badge-down{background:rgba(124,74,74,0.2);color:#c87070;border:1px solid rgba(124,74,74,0.3)}
+.badge-stable{background:rgba(122,100,40,0.2);color:var(--gold-dim);border:1px solid var(--divgold)}
+.update-delete{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;float:right;transition:color .2s}
+.update-delete:hover{color:var(--red)}
+
+.empty-state{text-align:center;padding:48px;color:var(--muted);font-size:13px;border:1px dashed var(--divgold)}
+
+/* DIVIDER */
+.divider{height:1px;background:var(--divgold);margin:32px 0}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo">lunae · conselho</span>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showPanel('analise')">Análise</button>
+      <button class="tab-btn" onclick="showPanel('checklist')">Checklist</button>
+      <button class="tab-btn" onclick="showPanel('atualizacoes')">Atualizações</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ANÁLISE -->
+<div class="panel active" id="panel-analise">
+  <h1 class="sec-title">Conselho <em>Estratégico</em></h1>
+  <p class="sec-sub">Envie uma imagem do seu conteúdo ou descreva o que quer analisar. Escolha os conselheiros e receba as análises.</p>
+
+  <div class="upload-area" onclick="document.getElementById('file-input').click()">
+    <div class="upload-icon">🎬</div>
+    <strong style="font-size:13px;color:var(--warm)">Clique para enviar imagem ou vídeo do conteúdo</strong>
+    <p>Foto, print, Reel ou vídeo — qualquer formato</p>
+    <input type="file" id="file-input" accept="image/*,video/*" onchange="handleFile(this)">
+  </div>
+  <img id="preview-img" alt="Preview" style="display:none;max-width:100%;max-height:300px;margin:16px auto;border:1px solid var(--divgold)">
+  <video id="preview-video" controls style="display:none;max-width:100%;max-height:300px;margin:16px auto;border:1px solid var(--divgold)"></video>
+
+  <textarea class="context-input" id="context-input" placeholder="Contexto adicional (opcional) — ex: esse Reel teve 200 views, quero entender por que não performou..."></textarea>
+
+  <p style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:12px">Escolha os conselheiros</p>
+  <div class="conselheiros-grid">
+    <label class="c-card selected" id="card-marcos">
+      <input type="checkbox" value="marcos" checked onchange="toggleCard('card-marcos',this)">
+      <div class="c-name">Marcos</div>
+      <div class="c-role">Estrategista de Conteúdo</div>
+    </label>
+    <label class="c-card selected" id="card-carol">
+      <input type="checkbox" value="carol" checked onchange="toggleCard('card-carol',this)">
+      <div class="c-name">Carol</div>
+      <div class="c-role">Copywriter Sênior</div>
+    </label>
+    <label class="c-card selected" id="card-ricardo">
+      <input type="checkbox" value="ricardo" checked onchange="toggleCard('card-ricardo',this)">
+      <div class="c-name">Ricardo</div>
+      <div class="c-role">Psicólogo do Consumidor</div>
+    </label>
+    <label class="c-card selected" id="card-diana">
+      <input type="checkbox" value="diana" checked onchange="toggleCard('card-diana',this)">
+      <div class="c-name">Diana</div>
+      <div class="c-role">Analista de Dados</div>
+    </label>
+    <label class="c-card selected" id="card-pedro">
+      <input type="checkbox" value="pedro" checked onchange="toggleCard('card-pedro',this)">
+      <div class="c-name">Pedro</div>
+      <div class="c-role">Diretor Criativo</div>
+    </label>
+    <label class="c-card selected" id="card-luana">
+      <input type="checkbox" value="luana" checked onchange="toggleCard('card-luana',this)">
+      <div class="c-name">Luana</div>
+      <div class="c-role">Especialista em Growth</div>
+    </label>
+  </div>
+
+  <button class="analyze-btn" id="analyze-btn" onclick="analisar()">Convocar o Conselho</button>
+
+  <div class="loading" id="loading">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <p>O conselho está deliberando...</p>
+  </div>
+
+  <div class="results" id="results"></div>
+</div>
+
+<!-- CHECKLIST -->
+<div class="panel" id="panel-checklist">
+  <h1 class="sec-title">Checklist <em>Estratégico</em></h1>
+  <p class="sec-sub">Suas tarefas, metas e próximos passos organizados.</p>
+
+  <div class="checklist-form">
+    <input type="text" class="checklist-input" id="check-input" placeholder="Nova tarefa..." onkeydown="if(event.key==='Enter')addCheck()">
+    <button class="add-btn" onclick="addCheck()">Adicionar</button>
+  </div>
+
+  <div class="checklist-list" id="checklist"></div>
+</div>
+
+<!-- ATUALIZAÇÕES -->
+<div class="panel" id="panel-atualizacoes">
+  <h1 class="sec-title"><em>Atualizações</em> do Perfil</h1>
+  <p class="sec-sub">Registre métricas, resultados e observações ao longo do tempo.</p>
+
+  <div class="update-form">
+    <p class="update-form-title">Nova atualização</p>
+    <div class="form-row">
+      <input type="text" class="form-input" id="upd-metrica" placeholder="Métrica — ex: 1.240 views">
+      <input type="text" class="form-input" id="upd-tipo" placeholder="Tipo — ex: Reel, Seguidor, Venda">
+    </div>
+    <textarea class="form-input context-input" id="upd-nota" placeholder="Observação — o que aconteceu, o que você testou..." style="min-height:60px;margin-bottom:12px"></textarea>
+    <div class="form-row" style="align-items:center">
+      <select class="form-input" id="upd-tendencia">
+        <option value="up">↑ Subiu</option>
+        <option value="stable">→ Estável</option>
+        <option value="down">↓ Caiu</option>
+      </select>
+      <button class="save-btn" onclick="addUpdate()">Salvar atualização</button>
+    </div>
+  </div>
+
+  <div class="updates-list" id="updates-list"></div>
+</div>
+
+<script>
+// ── TABS ──
+function showPanel(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  event.target.classList.add('active');
+}
+
+// ── FILE UPLOAD ──
+let base64Image = null;
+function handleFile(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    base64Image = e.target.result.split(',')[1];
+    const img = document.getElementById('preview-img');
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ── TOGGLE CARD ──
+function toggleCard(cardId, checkbox){
+  document.getElementById(cardId).classList.toggle('selected', checkbox.checked);
+}
+
+// ── CONSELHEIROS ──
+const CONSELHEIROS = {
+  marcos: {
+    nome: 'Marcos',
+    role: 'Estrategista de Conteúdo',
+    inicial: 'M',
+    system: 'Você é Marcos, estrategista de conteúdo. Pensa em POSICIONAMENTO, pilares de conteúdo e longo prazo. É direto, frio e analítico. Nunca decide por emoção. O nicho é lei da suposição e manifestação, para mulheres que já estudaram mas não conseguem resultado. O produto é um e-book afiliado "Por que você não consegue manifestar" por R$59,90. O perfil é dark, sem aparecer. Responda em português brasileiro, de forma direta e analítica. Máximo 150 palavras.'
+  },
+  carol: {
+    nome: 'Carol',
+    role: 'Copywriter Sênior',
+    inicial: 'C',
+    system: 'Você é Carol, copywriter sênior. É criativa, provocadora e obcecada em escrita que vende. O nicho é lei da suposição e manifestação, para mulheres que já estudaram mas não conseguem resultado. O produto é um e-book afiliado "Por que você não consegue manifestar" por R$59,90. O perfil é dark, sem aparecer. Analise o copy do conteúdo enviado. Responda em português brasileiro, de forma provocadora e direta. Máximo 150 palavras.'
+  },
+  ricardo: {
+    nome: 'Ricardo',
+    role: 'Psicólogo do Consumidor',
+    inicial: 'R',
+    system: 'Você é Ricardo, psicólogo do consumidor. Pensa em comportamento humano, gatilhos mentais, motivações profundas e medos. É empático mas brutalmente honesto. O nicho é lei da suposição e manifestação, para mulheres que já estudaram mas não conseguem resultado. O produto é um e-book afiliado "Por que você não consegue manifestar" por R$59,90. Responda em português brasileiro. Máximo 150 palavras.'
+  },
+  diana: {
+    nome: 'Diana',
+    role: 'Analista de Dados',
+    inicial: 'D',
+    system: 'Você é Diana, analista de dados. Pensa em métricas, performance, padrões e otimização. Suas conclusões são baseadas em dados. O nicho é lei da suposição e manifestação. O perfil tem 295 seguidores e 52k views/mês. O produto é um e-book afiliado "Por que você não consegue manifestar" por R$59,90. Analise o conteúdo enviado com foco em performance e dados. Responda em português brasileiro. Máximo 150 palavras.'
+  },
+  pedro: {
+    nome: 'Pedro',
+    role: 'Diretor Criativo',
+    inicial: 'P',
+    system: 'Você é Pedro, diretor criativo. Pensa em FORMATOS, estética, storytelling visual e experiência do público. É ousado, odeia o óbvio e sempre propõe algo fora da curva. O nicho é lei da suposição e manifestação. O perfil é dark academia, sem aparecer, texto sobre vídeo estético. Analise o conteúdo enviado e proponha algo diferente. Responda em português brasileiro. Máximo 150 palavras.'
+  },
+  luana: {
+    nome: 'Luana',
+    role: 'Especialista em Growth',
+    inicial: 'L',
+    system: 'Você é Luana, especialista em growth. Pensa em CRESCIMENTO, distribuição, viralização e algoritmo do Instagram. É pragmática, focada em escala e obcecada por engajamento. O nicho é lei da suposição e manifestação. O perfil tem 295 seguidores e 52k views/mês. O produto é um e-book afiliado. Analise o conteúdo enviado com foco em crescimento e algoritmo. Responda em português brasileiro. Máximo 150 palavras.'
+  }
+};
+
+// ── ANALISAR ──
+async function analisar(){
+  const selecionados = [...document.querySelectorAll('.conselheiros-grid input:checked')].map(i=>i.value);
+  if(selecionados.length === 0){ alert('Selecione pelo menos um conselheiro.'); return; }
+  
+  const contexto = document.getElementById('context-input').value;
+  const btn = document.getElementById('analyze-btn');
+  const loading = document.getElementById('loading');
+  const results = document.getElementById('results');
+
+  btn.disabled = true;
+  loading.style.display = 'block';
+  results.innerHTML = '';
+
+  const userContent = [];
+  if(base64Image){
+    userContent.push({ type:'image', source:{ type:'base64', media_type:'image/jpeg', data:base64Image }});
+  }
+  userContent.push({ type:'text', text: contexto || 'Analise este conteúdo e dê sua opinião estratégica.' });
+
+  const respostas = {};
+
+  for(const id of selecionados){
+    const c = CONSELHEIROS[id];
+    try{
+      const res = await fetch('https://api.anthropic.com/v1/messages',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:1000,
+          system: c.system,
+          messages:[{ role:'user', content: userContent }]
+        })
+      });
+      const data = await res.json();
+      respostas[id] = data.content?.[0]?.text || 'Sem resposta.';
+    } catch(e){
+      respostas[id] = 'Erro ao consultar este conselheiro.';
+    }
+  }
+
+  // VOTAÇÃO FINAL
+  let votoPrompt = 'Com base nas seguintes análises dos conselheiros, dê uma decisão final unificada e prática. Seja direto e objetivo. Máximo 120 palavras.\n\n';
+  for(const id of selecionados){
+    votoPrompt += `${CONSELHEIROS[id].nome}: ${respostas[id]}\n\n`;
+  }
+
+  let votoFinal = '';
+  try{
+    const vRes = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        messages:[{ role:'user', content: votoPrompt }]
+      })
+    });
+    const vData = await vRes.json();
+    votoFinal = vData.content?.[0]?.text || '';
+  } catch(e){ votoFinal = ''; }
+
+  loading.style.display = 'none';
+  btn.disabled = false;
+
+  // RENDER
+  for(const id of selecionados){
+    const c = CONSELHEIROS[id];
+    results.innerHTML += `
+      <div class="result-card">
+        <div class="result-header">
+          <div class="result-avatar">${c.inicial}</div>
+          <div>
+            <div class="result-name">${c.nome}</div>
+            <div class="result-role">${c.role}</div>
+          </div>
+        </div>
+        <div class="result-body">${respostas[id].replace(/\n/g,'<br>')}</div>
+      </div>`;
+  }
+
+  if(votoFinal){
+    results.innerHTML += `
+      <div class="vote-card">
+        <div class="vote-title">Decisão do Conselho</div>
+        <div class="vote-body">${votoFinal.replace(/\n/g,'<br>')}</div>
+      </div>`;
+  }
+}
+
+// ── CHECKLIST ──
+let checks = JSON.parse(localStorage.getItem('lunae-checks') || '[]');
+
+function renderChecks(){
+  const list = document.getElementById('checklist');
+  if(checks.length === 0){
+    list.innerHTML = '<div class="empty-state">Nenhuma tarefa ainda. Adicione acima.</div>';
+    return;
+  }
+  list.innerHTML = checks.map((c,i) => `
+    <div class="check-item ${c.done?'done':''}">
+      <div class="check-box ${c.done?'checked':''}" onclick="toggleCheck(${i})"></div>
+      <span class="check-text">${c.text}</span>
+      <button class="check-delete" onclick="deleteCheck(${i})">✕</button>
+    </div>`).join('');
+}
+
+function addCheck(){
+  const input = document.getElementById('check-input');
+  const text = input.value.trim();
+  if(!text) return;
+  checks.push({ text, done:false });
+  localStorage.setItem('lunae-checks', JSON.stringify(checks));
+  input.value = '';
+  renderChecks();
+}
+
+function toggleCheck(i){
+  checks[i].done = !checks[i].done;
+  localStorage.setItem('lunae-checks', JSON.stringify(checks));
+  renderChecks();
+}
+
+function deleteCheck(i){
+  checks.splice(i,1);
+  localStorage.setItem('lunae-checks', JSON.stringify(checks));
+  renderChecks();
+}
+
+// ── UPDATES ──
+let updates = JSON.parse(localStorage.getItem('lunae-updates') || '[]');
+
+function renderUpdates(){
+  const list = document.getElementById('updates-list');
+  if(updates.length === 0){
+    list.innerHTML = '<div class="empty-state">Nenhuma atualização ainda.</div>';
+    return;
+  }
+  list.innerHTML = updates.map((u,i) => `
+    <div class="update-item">
+      <button class="update-delete" onclick="deleteUpdate(${i})">✕</button>
+      <div class="update-date">${u.data} · ${u.tipo}</div>
+      <div class="update-metric">${u.metrica}</div>
+      ${u.nota ? `<div class="update-note">${u.nota}</div>` : ''}
+      <span class="update-badge badge-${u.tendencia}">${u.tendencia==='up'?'↑ Subiu':u.tendencia==='down'?'↓ Caiu':'→ Estável'}</span>
+    </div>`).join('');
+}
+
+function addUpdate(){
+  const metrica = document.getElementById('upd-metrica').value.trim();
+  const tipo = document.getElementById('upd-tipo').value.trim();
+  const nota = document.getElementById('upd-nota').value.trim();
+  const tendencia = document.getElementById('upd-tendencia').value;
+  if(!metrica) return;
+  const now = new Date();
+  const data = now.toLocaleDateString('pt-BR');
+  updates.unshift({ metrica, tipo:tipo||'Geral', nota, tendencia, data });
+  localStorage.setItem('lunae-updates', JSON.stringify(updates));
+  document.getElementById('upd-metrica').value='';
+  document.getElementById('upd-tipo').value='';
+  document.getElementById('upd-nota').value='';
+  renderUpdates();
+}
+
+function deleteUpdate(i){
+  updates.splice(i,1);
+  localStorage.setItem('lunae-updates', JSON.stringify(updates));
+  renderUpdates();
+}
+
+// INIT
+renderChecks();
+renderUpdates();
+</script>
+</body>
+</html>
