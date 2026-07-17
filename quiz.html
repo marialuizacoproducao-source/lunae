@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diagnóstico de Manifestação · lunae</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=EB+Garamond:ital,wght@0,300;0,400;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --black:#060503;
+  --deep:#0d0b07;
+  --surface:#13100a;
+  --gold:#c8a951;
+  --gold-light:#e2c97e;
+  --gold-dim:#7a6428;
+  --gold-pale:rgba(200,169,81,0.10);
+  --cream:#f0e6d0;
+  --warm:#c9b99a;
+  --muted:#6b5f4e;
+  --divgold:rgba(200,169,81,0.22);
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--cream);font-family:'DM Sans',sans-serif;font-size:16px;line-height:1.7;overflow-x:hidden;min-height:100vh}
+
+body::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:160px}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;position:relative;z-index:1}
+.screen.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+
+/* INTRO */
+#screen-intro{padding:48px 24px;text-align:center}
+.intro-glow{position:absolute;inset:0;background:radial-gradient(ellipse 65% 50% at 50% 10%,rgba(200,169,81,.12) 0%,transparent 65%);pointer-events:none}
+.brand-tag{font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:32px;font-family:'DM Sans',sans-serif;font-weight:500}
+.badge{display:inline-block;padding:6px 18px;border:1px solid var(--divgold);border-radius:20px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:28px}
+.intro-title{font-family:'Playfair Display',serif;font-size:clamp(2rem,8vw,3.4rem);font-weight:400;line-height:1.1;max-width:600px;margin:0 auto 20px}
+.intro-title em{font-style:italic;color:var(--gold-light)}
+.intro-sub{font-family:'EB Garamond',serif;font-size:clamp(1rem,3vw,1.25rem);font-style:italic;color:var(--warm);max-width:440px;margin:0 auto 48px;line-height:1.7}
+.divider{display:flex;align-items:center;gap:12px;justify-content:center;margin-bottom:40px}
+.div-line{width:32px;height:1px;background:var(--gold-dim)}
+.div-d{width:4px;height:4px;background:var(--gold-dim);transform:rotate(45deg)}
+.count{font-size:12px;color:var(--muted);letter-spacing:.1em}
+
+/* BTN */
+.btn-primary{display:inline-block;background:transparent;border:1px solid var(--gold);color:var(--gold-light);font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;padding:18px 52px;cursor:pointer;position:relative;overflow:hidden;z-index:1;transition:color .3s;max-width:400px;width:100%}
+.btn-primary::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s ease;z-index:-1}
+.btn-primary:hover{color:var(--black)}
+.btn-primary:hover::before{transform:scaleX(1)}
+.btn-note{font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:14px}
+
+/* QUIZ SCREEN */
+#screen-quiz{padding:32px 24px 60px;justify-content:flex-start;padding-top:48px}
+.quiz-inner{width:100%;max-width:560px;margin:0 auto}
+
+/* PROGRESS */
+.progress-wrap{margin-bottom:40px}
+.progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.progress-label span:last-child{color:var(--gold)}
+.progress-bar{height:2px;background:rgba(200,169,81,.15);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:2px;transition:width .5s ease}
+
+/* QUESTION */
+.question-num{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:16px}
+.question-text{font-family:'Playfair Display',serif;font-size:clamp(1.3rem,5vw,2rem);font-weight:400;line-height:1.25;color:var(--cream);margin-bottom:8px}
+.question-hint{font-family:'EB Garamond',serif;font-style:italic;font-size:15px;color:var(--muted);margin-bottom:36px}
+
+/* OPTIONS */
+.options{display:flex;flex-direction:column;gap:10px}
+.option{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;border:1px solid var(--divgold);cursor:pointer;transition:background .25s,border-color .25s;position:relative;overflow:hidden}
+.option:hover{background:var(--gold-pale);border-color:var(--gold-dim)}
+.option.selected{background:var(--gold-pale);border-color:var(--gold)}
+.option-radio{width:18px;height:18px;border:1px solid var(--gold-dim);border-radius:50%;flex-shrink:0;margin-top:2px;display:flex;align-items:center;justify-content:center;transition:border-color .2s}
+.option.selected .option-radio{border-color:var(--gold)}
+.option-dot{width:8px;height:8px;border-radius:50%;background:var(--gold);display:none}
+.option.selected .option-dot{display:block}
+.option-text{font-size:15px;color:var(--warm);line-height:1.5;transition:color .2s}
+.option.selected .option-text{color:var(--cream)}
+
+/* NAV */
+.quiz-nav{display:flex;justify-content:space-between;align-items:center;margin-top:36px}
+.btn-back{background:none;border:none;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);cursor:pointer;padding:0;transition:color .2s}
+.btn-back:hover{color:var(--warm)}
+.btn-back:disabled{opacity:0;pointer-events:none}
+.btn-next{background:transparent;border:1px solid var(--gold);color:var(--gold-light);font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.2em;text-transform:uppercase;padding:14px 36px;cursor:pointer;position:relative;overflow:hidden;z-index:1;transition:color .3s;opacity:.4;pointer-events:none}
+.btn-next.enabled{opacity:1;pointer-events:auto}
+.btn-next::before{content:'';position:absolute;inset:0;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .3s ease;z-index:-1}
+.btn-next.enabled:hover{color:var(--black)}
+.btn-next.enabled:hover::before{transform:scaleX(1)}
+
+/* BONUS TAG */
+.bonus-tag{display:inline-block;padding:4px 14px;background:rgba(200,169,81,.15);border:1px solid var(--divgold);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
+
+/* PROCESSING */
+#screen-processing{text-align:center;padding:40px 24px}
+.processing-title{font-family:'Playfair Display',serif;font-size:clamp(1.4rem,5vw,2rem);font-style:italic;color:var(--cream);margin-bottom:14px}
+.processing-sub{font-size:14px;color:var(--muted);letter-spacing:.05em;margin-bottom:48px}
+.loading-dots{display:flex;gap:10px;justify-content:center;margin-bottom:48px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gold-dim);animation:dotPulse 1.4s ease-in-out infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes dotPulse{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1);opacity:1}}
+.processing-items{list-style:none;text-align:left;max-width:320px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.p-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);letter-spacing:.05em}
+.p-item .p-icon{width:20px;height:20px;border-radius:50%;border:1px solid var(--gold-dim);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .4s}
+.p-item.done .p-icon{background:var(--gold-dim);border-color:var(--gold)}
+.p-item.done{color:var(--warm)}
+
+/* RESULT */
+#screen-result{padding:48px 24px 80px;text-align:center}
+.result-glow{position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 50% 30%,rgba(200,169,81,.1) 0%,transparent 65%);pointer-events:none}
+.result-orn{font-family:'Playfair Display',serif;font-size:48px;color:var(--gold);opacity:.3;margin-bottom:8px;line-height:1}
+.result-badge{display:inline-block;padding:6px 20px;border:1px solid var(--gold);font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:28px}
+.result-title{font-family:'Playfair Display',serif;font-size:clamp(1.8rem,6vw,3rem);font-weight:400;line-height:1.15;max-width:540px;margin:0 auto 16px}
+.result-title em{font-style:italic;color:var(--gold-light)}
+.result-sub{font-family:'EB Garamond',serif;font-style:italic;font-size:clamp(1rem,3vw,1.2rem);color:var(--warm);max-width:420px;margin:0 auto 44px;line-height:1.7}
+
+.result-box{border:1px solid var(--divgold);padding:28px 32px;max-width:480px;margin:0 auto 44px;text-align:left;position:relative}
+.result-box::before,.result-box::after{content:'';position:absolute;width:14px;height:14px;border-color:var(--gold-dim);border-style:solid}
+.result-box::before{top:7px;left:7px;border-width:1px 0 0 1px}
+.result-box::after{bottom:7px;right:7px;border-width:0 1px 1px 0}
+.result-box-title{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold-dim);margin-bottom:16px}
+.result-items{list-style:none;display:flex;flex-direction:column;gap:12px}
+.result-items li{display:flex;gap:12px;font-size:15px;color:var(--warm);line-height:1.5}
+.result-items li::before{content:'✦';color:var(--gold);font-size:10px;flex-shrink:0;margin-top:4px}
+
+.cta-group{display:flex;flex-direction:column;align-items:center;gap:12px;max-width:400px;margin:0 auto}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeUp .5s ease both}
+
+@media(max-width:480px){
+  .option{padding:14px 16px}
+  .result-box{padding:22px 20px}
+}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div id="screen-intro" class="screen active">
+  <div class="intro-glow"></div>
+  <div class="brand-tag">lunae · lei da suposição</div>
+  <div class="badge">Diagnóstico exclusivo</div>
+  <h1 class="intro-title">Descubra o que está<br><em>bloqueando</em><br>suas manifestações</h1>
+  <p class="intro-sub">Responda 7 perguntas e entenda exatamente onde está o nó e o que fazer pra dissolvê-lo.</p>
+  <div class="divider"><div class="div-line"></div><div class="div-d"></div><div class="div-line"></div></div>
+  <button class="btn-primary" onclick="startQuiz()">Começar diagnóstico</button>
+  <p class="btn-note">gratuito · 2 minutos</p>
+</div>
+
+<!-- QUIZ -->
+<div id="screen-quiz" class="screen">
+  <div class="quiz-inner">
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span id="prog-label">Pergunta 1 de 7</span>
+        <span id="prog-pct">0%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    </div>
+    <div id="question-area"></div>
+    <div class="quiz-nav">
+      <button class="btn-back" id="btn-back" onclick="prevQuestion()" disabled>← Voltar</button>
+      <button class="btn-next" id="btn-next" onclick="nextQuestion()">Continuar →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROCESSING -->
+<div id="screen-processing" class="screen">
+  <p class="processing-title">Analisando seu<br><em>perfil de manifestação…</em></p>
+  <p class="processing-sub">Só um momento</p>
+  <div class="loading-dots">
+    <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+  </div>
+  <ul class="processing-items">
+    <li class="p-item" id="pi1"><span class="p-icon">○</span>Mapeando padrões de crença</li>
+    <li class="p-item" id="pi2"><span class="p-icon">○</span>Identificando bloqueios ativos</li>
+    <li class="p-item" id="pi3"><span class="p-icon">○</span>Preparando seu diagnóstico</li>
+  </ul>
+</div>
+
+<!-- RESULT -->
+<div id="screen-result" class="screen">
+  <div class="result-glow"></div>
+  <div class="result-orn">✦</div>
+  <div class="result-badge">Seu diagnóstico</div>
+  <h2 class="result-title">Você está mais<br>perto do que<br><em>imagina.</em></h2>
+  <p class="result-sub">O problema não é falta de fé, nem de técnica. É uma estrutura que ninguém te mostrou ainda.</p>
+
+  <div class="result-box">
+    <p class="result-box-title">O que o diagnóstico revelou</p>
+    <ul class="result-items">
+      <li>Você já tem o desejo claro. O que falta é o estado de ser correto</li>
+      <li>Suas técnicas não estão erradas, mas estão atacando a camada errada</li>
+      <li>Existe um padrão subconsciente que desfaz o que você constrói conscientemente</li>
+      <li>Quando esse padrão é dissolvido, as manifestações chegam sem esforço</li>
+    </ul>
+  </div>
+
+  <div class="cta-group">
+    <button class="btn-primary" onclick="goToOffer()">Entender o que está me bloqueando</button>
+    <p class="btn-note">e-book · acesso imediato</p>
+  </div>
+</div>
+
+<script>
+const questions = [
+  {
+    num: "Pergunta 1 de 7",
+    text: "Como você descreveria sua relação com a manifestação hoje?",
+    hint: "Seja honesta. Isso ajuda a entender exatamente onde você está.",
+    options: [
+      "Já estudei muito, mas meus resultados são inconsistentes.",
+      "Consigo manifestar coisas menores, mas trava nas que mais importam.",
+      "Estou começando agora e quero entender como funciona de verdade.",
+      "Já manifestei coisas incríveis, mas sinto que posso ir além."
+    ]
+  },
+  {
+    num: "Pergunta 2 de 7",
+    text: "O que você sente quando pensa no seu desejo principal?",
+    hint: "",
+    options: [
+      "Ansiedade, fico pensando se vai ou não vai chegar.",
+      "Esperança, mas misturada com dúvida.",
+      "Neutralidade, consigo imaginar já tendo, sem desespero.",
+      "Medo de querer demais e me frustrar de novo."
+    ]
+  },
+  {
+    num: "Pergunta 3 de 7",
+    text: "Quando a 3D mostra o oposto do que você quer, como você reage?",
+    hint: "A 3D é a realidade física que você está vendo agora.",
+    options: [
+      "Entro em colapso e começo a duvidar de tudo.",
+      "Consigo manter a suposição por um tempo, mas eventualmente cedo.",
+      "Uso a 3D como confirmação de que minha suposição ainda não pegou.",
+      "Pratico revision e volto ao estado rapidamente."
+    ]
+  },
+  {
+    num: "Pergunta 4 de 7",
+    text: "O que você acredita que mais está travando suas manifestações?",
+    hint: "",
+    options: [
+      "Crenças inconscientes que eu não sei exatamente quais são.",
+      "Falta de constância nas técnicas.",
+      "Apego ao resultado, fico verificando se chegou.",
+      "Não consigo entrar no estado de 'já tem' de verdade."
+    ]
+  },
+  {
+    num: "Pergunta 5 de 7",
+    text: "Quais técnicas você já tentou com mais frequência?",
+    hint: "",
+    options: [
+      "SATS, scripting e revision com constância.",
+      "Afirmações e visualizações, mas sem estrutura definida.",
+      "De tudo um pouco, busquei muito conteúdo mas não aprofundei em nada.",
+      "Ainda estou aprendendo as técnicas básicas."
+    ]
+  },
+  {
+    num: "Pergunta 6 de 7",
+    text: "Como você se sente em relação à pessoa que precisa se tornar para receber o que quer?",
+    hint: "",
+    options: [
+      "Sinto que ainda não sou essa pessoa e não sei como mudar isso.",
+      "Entendo o conceito de identidade, mas não consigo sustentar o estado.",
+      "Já me identifico com essa versão, mas a 3D ainda não refletiu.",
+      "Ainda não pensei muito na questão de identidade."
+    ]
+  },
+  {
+    num: "Pergunta bônus",
+    text: "Se você entendesse exatamente o mecanismo por trás dos seus bloqueios, o quanto isso mudaria sua trajetória?",
+    hint: "",
+    bonus: true,
+    options: [
+      "Mudaria tudo. Sinto que é isso que está faltando.",
+      "Ajudaria bastante, já tentei de tudo mas sem entender o porquê.",
+      "Talvez ajudasse, mas ainda tenho dúvidas se funciona pra mim.",
+      "Já entendo o mecanismo, o que falta é execução."
+    ]
+  }
+];
+
+let current = 0;
+let answers = [];
+
+function startQuiz() {
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function renderQuestion() {
+  const q = questions[current];
+  const pct = Math.round((current / questions.length) * 100);
+
+  document.getElementById('prog-label').textContent = q.num;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+
+  const area = document.getElementById('question-area');
+  area.innerHTML = `
+    <div class="fade-in">
+      ${q.bonus ? '<div class="bonus-tag">✦ Pergunta bônus</div>' : `<p class="question-num">${q.num}</p>`}
+      <h2 class="question-text">${q.text}</h2>
+      ${q.hint ? `<p class="question-hint">${q.hint}</p>` : ''}
+      <div class="options">
+        ${q.options.map((opt, i) => `
+          <div class="option ${answers[current] === i ? 'selected' : ''}" onclick="selectOption(${i})">
+            <div class="option-radio"><div class="option-dot"></div></div>
+            <span class="option-text">${opt}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-back').disabled = current === 0;
+  updateNextBtn();
+}
+
+function selectOption(i) {
+  answers[current] = i;
+  document.querySelectorAll('.option').forEach((el, idx) => {
+    el.classList.toggle('selected', idx === i);
+  });
+  updateNextBtn();
+}
+
+function updateNextBtn() {
+  const btn = document.getElementById('btn-next');
+  const hasAnswer = answers[current] !== undefined;
+  btn.classList.toggle('enabled', hasAnswer);
+  btn.textContent = current === questions.length - 1 ? 'Ver meu diagnóstico →' : 'Continuar →';
+}
+
+function nextQuestion() {
+  if (answers[current] === undefined) return;
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    runProcessing();
+  }
+}
+
+function prevQuestion() {
+  if (current > 0) {
+    current--;
+    renderQuestion();
+  }
+}
+
+function runProcessing() {
+  showScreen('screen-processing');
+  const items = ['pi1','pi2','pi3'];
+  items.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('done');
+      document.getElementById(id).querySelector('.p-icon').textContent = '✦';
+    }, 800 + i * 900);
+  });
+  setTimeout(() => showScreen('screen-result'), 3800);
+}
+
+function goToOffer() {
+  window.open('https://go.hotmart.com/A106776038Q?dp=1', '_blank');
+}
+</script>
+</body>
+</html>
